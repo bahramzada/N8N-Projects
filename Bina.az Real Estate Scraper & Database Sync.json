@@ -1,0 +1,786 @@
+{
+  "name": "Bina.az Real Estate Scraper & Database Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bina.az/graphql",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "az,en;q=0.9,tr;q=0.8,ru;q=0.7"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"operationName\": \"SearchItems\",\n  \"variables\": {\n    \"first\": 20,\n    \"filter\": { \"leased\": false },\n    \"sort\": \"BUMPED_AT_DESC\"\n  },\n  \"extensions\": {\n    \"persistedQuery\": {\n      \"version\": 1,\n      \"sha256Hash\": \"872e9c694c34b6674514d48e9dcf1b46241d3d79f365ddf20d138f18e74554c5\"\n    }\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1488,
+        112
+      ],
+      "id": "1152033b-a6be-49ca-8fd6-a7fafd04b7e6",
+      "name": "Fetch Bina.az Listings",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: HTTP Request node-un çıxışı (JSON)\n//  - ya $json.data.itemsConnection.edges[].node\n//  - ya da $json.data.items[] / $json.items[]\n//\n// Output: ilk 20 item üçün sadələşdirilmiş obyektlər\n\nfunction pickItems(payload) {\n  if (!payload) return [];\n\n  // 1) itemsConnection.edges -> node\n  if (payload?.itemsConnection?.edges?.length) {\n    return payload.itemsConnection.edges.map(e => e.node);\n  }\n\n  // 2) items array\n  if (payload?.items?.length) {\n    return payload.items;\n  }\n\n  // 3) bəzi hallarda data qatını birbaşa $json-da görə bilərik\n  if (payload?.data?.itemsConnection?.edges?.length) {\n    return payload.data.itemsConnection.edges.map(e => e.node);\n  }\n  if (payload?.data?.items?.length) {\n    return payload.data.items;\n  }\n\n  return [];\n}\n\nconst payload = $json; // HTTP Request node-dan gələn tam cavab\nlet nodes = pickItems(payload);\n\n// ilk 20\nnodes = nodes.slice(0, 20);\n\n// təhlükəsiz oxuma köməkçisi\nconst g = (obj, path, def=null) => {\n  try {\n    return path.split('.').reduce((o,k)=>o?.[k], obj) ?? def;\n  } catch { return def; }\n};\n\nconst results = nodes.map((n, i) => {\n  const id = g(n, 'id');\n  const areaVal = g(n, 'area.value');\n  const areaUnits = g(n, 'area.units');\n  const leased = g(n, 'leased');\n  const floor = g(n, 'floor');\n  const floors = g(n, 'floors');\n\n  const cityId = g(n, 'city.id');\n  const cityName = g(n, 'city.name');\n\n  const locId = g(n, 'location.id');\n  const locName = g(n, 'location.name');\n  const locFull = g(n, 'location.fullName');\n\n  const hasMortgage = g(n, 'hasMortgage');\n\n  // price obyekti bəzən {value, currency} şəklində olur\n  const priceVal = g(n, 'price.value', g(n, 'price', null));\n  const priceCurrency = g(n, 'price.currency', null);\n\n  // bəzi sahələr ola bilər: rooms, bumpedAt, isProAd və s. varsa götürək\n  const rooms = g(n, 'rooms', null);\n  const isProAd = g(n, 'isProAd', null);\n  const bumpedAt = g(n, 'bumpedAt', null);\n\n  // linki id-dən qururuq (slug yoxdursa)\n  const link = id ? `https://bina.az/items/${id}` : null;\n\n  return {\n    index: i + 1,\n    id,\n    link,\n\n    // sahə və mərtəbə\n    area_m2: areaVal,\n    area_units: areaUnits, // \"m²\"\n    floor,\n    floors,\n\n    // şəhər / lokasiya\n    city_id: cityId,\n    city_name: cityName,\n    location_id: locId,\n    location_name: locName,\n    location_full: locFull,\n\n    // qiymət\n    price: priceVal,\n    currency: priceCurrency,\n\n    // digər flag-lər\n    leased,\n    hasMortgage,\n    isProAd,\n    bumpedAt,\n\n    // istəsən hamı üçün xam node-u da saxla:\n    // raw: n\n  };\n});\n\nreturn results.map(r => ({ json: r }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1280,
+        112
+      ],
+      "id": "618b5608-9556-4c52-88b3-459cbce4542e",
+      "name": "Extract Items from GraphQL"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.link }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept-Language",
+              "value": "az"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1088,
+        304
+      ],
+      "id": "72f8d591-d118-4432-b389-906347b90a23",
+      "name": "Fetch Listing Detail Page"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "description",
+              "cssSelector": ".product-description__content"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -848,
+        176
+      ],
+      "id": "fe2b51fc-6c60-45ec-9528-877b01bed97e",
+      "name": "Extract Description from HTML"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "stats",
+              "cssSelector": ".product-statistics__i-text",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -848,
+        464
+      ],
+      "id": "a69e0da7-90c7-460a-90d1-b341b0557d45",
+      "name": "Extract Stats from HTML"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst out = items.map(i => {\n  const statsArr = Array.isArray(i.json.stats)\n    ? i.json.stats.map(s => String(s).trim())\n    : (i.json.stats ? [String(i.json.stats).trim()] : []);\n\n  const updatedText = statsArr.find(s => /Yeniləndi/i.test(s)) || '';\n  const m = updatedText.match(/(\\d{2})\\.(\\d{2})\\.(\\d{4}),\\s*(\\d{2}):(\\d{2})/);\n\n  let updated_iso_local = '';\n  let updated_iso_baku = '';\n  let updated_rfc3339_utc = '';\n  let updated_unix = null;\n\n  if (m) {\n    const [, dd, MM, yyyy, HH, mm] = m;\n    updated_iso_local = `${yyyy}-${MM}-${dd}T${HH}:${mm}:00`;\n    updated_iso_baku  = `${updated_iso_local}+04:00`;\n    const dt = new Date(updated_iso_baku);\n    updated_rfc3339_utc = dt.toISOString();\n    updated_unix = Math.floor(dt.getTime() / 1000);\n  }\n\n  const viewsText = statsArr.find(s => /Baxışların sayı/i.test(s));\n  const views = viewsText ? Number((viewsText.match(/\\d+/) || [null])[0]) : null;\n\n  return {\n    json: {\n      ...i.json,\n      updated_raw: updatedText,\n      updated_iso_local,\n      updated_iso_baku,\n      updated_rfc3339_utc,\n      updated_unix,\n      views,\n    }\n  };\n});\n\nreturn out;  // <-- burda array qaytarırıq, hər input üçün bir çıxış\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        320
+      ],
+      "id": "5627ac71-c040-407a-9792-8509804c93dc",
+      "name": "Transform and Parse Stats"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -336,
+        80
+      ],
+      "id": "a30c5a09-a302-4d1c-8e76-dcb55addcf0b",
+      "name": "Combine All Data",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "eoDJUgIdS3LQzlby",
+          "mode": "list",
+          "cachedResultName": "bina.az",
+          "cachedResultUrl": "/projects/LxNsNN2aGZagEGXF/datatables/eoDJUgIdS3LQzlby"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "elan_id",
+              "keyValue": "={{ String($json.id).trim() }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "elan_id": "={{ $json.id }}",
+            "link": "={{ $json.link }}",
+            "area": "={{ $json.area_m2 }}",
+            "area_unit": "={{ $json.area_units }}",
+            "floor": "={{ $json.floor }}",
+            "floors": "={{ $json.floors }}",
+            "city_id": "={{ $json.city_id }}",
+            "city_name": "={{ $json.city_name }}",
+            "location_id": "={{ $json.location_id }}",
+            "location_name": "={{ $json.location_name }}",
+            "location_full": "={{ $json.location_full }}",
+            "price": "={{ $json.price }}",
+            "price_currency": "={{ $json.currency }}",
+            "leased": "={{ $json.leased }}",
+            "hasMortgage": "={{ $json.hasMortgage }}",
+            "isProAd": "={{ $json.isProAd }}",
+            "bumpedAt": "={{ $json.bumpedAt }}",
+            "description": "={{ $json.description }}",
+            "publish_time_text": "={{ $json.updated_raw }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "elan_id",
+              "displayName": "elan_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "area",
+              "displayName": "area",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "area_unit",
+              "displayName": "area_unit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "floor",
+              "displayName": "floor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "floors",
+              "displayName": "floors",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "city_id",
+              "displayName": "city_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "city_name",
+              "displayName": "city_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "location_id",
+              "displayName": "location_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "location_name",
+              "displayName": "location_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "location_full",
+              "displayName": "location_full",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "price_currency",
+              "displayName": "price_currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "leased",
+              "displayName": "leased",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "isProAd",
+              "displayName": "isProAd",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "bumpedAt",
+              "displayName": "bumpedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "hasMortgage",
+              "displayName": "hasMortgage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "publish_time_text",
+              "displayName": "publish_time_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "39be07bb-d246-4ec4-af90-044409785077",
+      "name": "Upsert to Database"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1UmQEKdu1PAahgN0bujrEyTaF3d_YEq5tcF4fgNvR3yw",
+          "mode": "list",
+          "cachedResultName": "bina_az",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UmQEKdu1PAahgN0bujrEyTaF3d_YEq5tcF4fgNvR3yw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sayfa1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UmQEKdu1PAahgN0bujrEyTaF3d_YEq5tcF4fgNvR3yw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "link": "={{ $json.link }}",
+            "area_m2": "={{ $json.area_m2 }}",
+            "area_units": "={{ $json.area_units }}",
+            "floor": "={{ $json.floor }}",
+            "floors": "={{ $json.floors }}",
+            "city_id": "={{ $json.city_id }}",
+            "city_name": "={{ $json.city_name }}",
+            "location_id": "={{ $json.location_id }}",
+            "location_name": "={{ $json.location_name }}",
+            "location_full": "={{ $json.location_full }}",
+            "price": "={{ $json.price }}",
+            "leased": "={{ $json.leased }}",
+            "currency": "={{ $json.currency }}",
+            "hasMortgage": "={{ $json.hasMortgage }}",
+            "isProAd": "={{ $json.isProAd }}",
+            "bumpedAt": "={{ $json.bumpedAt }}",
+            "description": "={{ $json.description }}",
+            "updated_text": "={{ $json.updated_raw }}",
+            "updated_at": "={{ $json.updated_iso_local }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "area_m2",
+              "displayName": "area_m2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "area_units",
+              "displayName": "area_units",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "floor",
+              "displayName": "floor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "floors",
+              "displayName": "floors",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "city_id",
+              "displayName": "city_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "city_name",
+              "displayName": "city_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location_id",
+              "displayName": "location_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location_name",
+              "displayName": "location_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location_full",
+              "displayName": "location_full",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "leased",
+              "displayName": "leased",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "hasMortgage",
+              "displayName": "hasMortgage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "isProAd",
+              "displayName": "isProAd",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "bumpedAt",
+              "displayName": "bumpedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_text",
+              "displayName": "updated_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        176
+      ],
+      "id": "42d78dd4-c72b-437e-a2ec-1c56010eff85",
+      "name": "Update Google Sheets",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "X8ZtTgujrI7n4SyK",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1792,
+        112
+      ],
+      "id": "87aa01e9-0752-4e22-8e92-c188afad957a",
+      "name": "Run Every 12 Minutes"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Fetch Bina.az Listings": {
+      "main": [
+        [
+          {
+            "node": "Extract Items from GraphQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Items from GraphQL": {
+      "main": [
+        [
+          {
+            "node": "Fetch Listing Detail Page",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Combine All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Listing Detail Page": {
+      "main": [
+        [
+          {
+            "node": "Extract Description from HTML",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Stats from HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Description from HTML": {
+      "main": [
+        [
+          {
+            "node": "Combine All Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Extract Stats from HTML": {
+      "main": [
+        [
+          {
+            "node": "Transform and Parse Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform and Parse Stats": {
+      "main": [
+        [
+          {
+            "node": "Combine All Data",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Combine All Data": {
+      "main": [
+        [
+          {
+            "node": "Update Google Sheets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Upsert to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Every 12 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Fetch Bina.az Listings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e8dab1c6-64d7-48b2-a31f-018d4af4a5e9",
+  "meta": {
+    "instanceId": "c343419b4b1cdecddbb029e248deaac9aabf485149254fbb2ffa189213d42aba"
+  },
+  "id": "h4LDZE7CxcX73USm",
+  "tags": []
+}
