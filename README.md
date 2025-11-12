@@ -10,7 +10,7 @@
 ## 📖 Table of Contents
 - [Overview](#overview-1)
 - [Workflows](#workflows-1)
-- [About Each Workflow](about-each)
+- [About Each Workflow](#about-each)
   - [Bina.az Real Estate Scraper & Database Sync](#binaaz-real-estate-scraper--database-sync)
   - [Glorri.az Job Scraper & Email Sender](#glorriaz-job-scraper--email-sender)
 
