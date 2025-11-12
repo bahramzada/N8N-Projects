@@ -1,0 +1,234 @@
+{
+  "name": "Glorri.az Job Scraper & Email Sender",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "**🇬🇧 English Explanation:**\nThis n8n workflow automatically collects new job postings from **Glorri.az** several times a day and saves them into a Data Table called **“glorri”**.\n\nA **Schedule Trigger** runs at specific hours, calling the **HTTP Request** node to fetch the latest job listings. \n\nThe **Code in JavaScript** node filters only data-related positions, while another **Code node** extracts the job titles and slugs. \n\nThe **Upsert Row(s)** node then writes this information into the Data Table — if a record with the same link already exists, it updates it; otherwise, it inserts a new one. \n\nAt the same time, the **Gmail** node sends an email containing the latest jobs and posting times.\nIn short, the workflow keeps the job list continuously updated and notifies the user automatically.",
+        "height": 352,
+        "width": 624,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -688,
+        400
+      ],
+      "typeVersion": 1,
+      "id": "f3ebc830-87c1-4aad-8588-cf198123367a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 10,13,15,17,19 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -480,
+        192
+      ],
+      "id": "f3679dd0-63f1-4fdc-adac-346a6e092541",
+      "name": "Trigger: Hourly Job Check"
+    },
+    {
+      "parameters": {
+        "jsCode": "const jobs = items[0].json.entities;\nconst filteredJobs = jobs.filter(job =>\n  job.title.toLowerCase().includes('data') ||\n  job.title.toLowerCase().includes('anali')\n);\nreturn [{ json: { jobs: filteredJobs } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        192
+      ],
+      "id": "685f8bb7-8908-432f-84a4-56f89133a4bf",
+      "name": "Filter: Data-Related Positions",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mode: Run Once for All Items\n// Gələn hər item-də json.jobs massivini oxu və title/slug cütlərini çıxar\n\nconst out = [];\n\nfor (const it of items) {\n  const arr = it.json?.jobs ?? [];   // hər item-in içində jobs[] var\n  for (const job of arr) {\n    const title = job?.title;\n    const slug  = job?.slug;\n    if (title && slug) {\n      out.push({ json: { title, slug } });\n    }\n  }\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        368
+      ],
+      "id": "781072df-2409-4c1e-9d9d-1168531c52a7",
+      "name": "Extract: Job Titles & Slugs",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "sendTo": "raulbakhramzadeh@icloud.com",
+        "subject": "={{ \n  (() => {\n    const jobs = $json.jobs || [];\n    const count = Array.isArray(jobs) ? jobs.length : 0;\n\n    const date = new Date();\n    // Bakı vaxtına düzəliş (UTC+4)\n    date.setUTCHours(date.getUTCHours()+3); \n\n    const pad = n => n < 10 ? '0' + n : n;\n    const day = pad(date.getDate());\n    const month = pad(date.getMonth() + 1);\n    const year = date.getFullYear();\n    const hour = pad(date.getHours());\n    const minute = pad(date.getMinutes());\n\n    return `Bugünün iş elanları [${day}/${month}/${year}] [${hour}:${minute} Azərbaycan saatı] | Tapılan elan sayı: ${count}`;\n  })()\n}}",
+        "message": "={{ \n  (() => {\n    const jobs = $json.jobs || [];\n    if (!Array.isArray(jobs) || jobs.length === 0) {\n      return \"Bugün elan yoxdur\";\n    }\n    const formatDate = d => {\n      const date = new Date(d);\n      const pad = n => n < 10 ? '0' + n : n;\n      return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;\n    };\n    return jobs.map(job => \n      `<p>${job.title} - ${formatDate(job.postedDate)} - https://jobs.glorri.az/vacancies/${job.company.slug}/${job.slug}</p>`\n    ).join('');\n  })()\n}}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        336,
+        192
+      ],
+      "id": "1cf230c6-a662-4852-b3a2-b24648a22f87",
+      "name": "Email: Post Job Updates",
+      "webhookId": "5094de8b-ab68-4438-9b0b-2b2a2a9e95b5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "7AIb4GttaCoApRHp",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "rCGgCqUG1jqCMQQI",
+          "mode": "list",
+          "cachedResultName": "glorri.az",
+          "cachedResultUrl": "/projects/LxNsNN2aGZagEGXF/datatables/rCGgCqUG1jqCMQQI"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "link",
+              "keyValue": "=https://jobs.glorri.az/vacancies/{{ $json.slug }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ $json.title }}",
+            "link": "=https://jobs.glorri.az/vacancies/{{ $json.slug }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        464,
+        368
+      ],
+      "id": "223cc5ab-de51-4dfb-9928-d2dfd9aa40f7",
+      "name": "Database: Update Job Records"
+    },
+    {
+      "parameters": {
+        "url": "https://api.glorri.az/job-service-v2/jobs/public?sort=-date&offset=0&limit=20",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -272,
+        192
+      ],
+      "id": "d5aa587b-4108-45ab-a7d7-1c1f1808a7b8",
+      "name": "Fetch: Glorri.az Job Listings",
+      "executeOnce": false,
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Trigger: Hourly Job Check": {
+      "main": [
+        [
+          {
+            "node": "Fetch: Glorri.az Job Listings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter: Data-Related Positions": {
+      "main": [
+        [
+          {
+            "node": "Email: Post Job Updates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract: Job Titles & Slugs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract: Job Titles & Slugs": {
+      "main": [
+        [
+          {
+            "node": "Database: Update Job Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch: Glorri.az Job Listings": {
+      "main": [
+        [
+          {
+            "node": "Filter: Data-Related Positions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b03a3d08-bb55-4f62-b7c0-109457152d61",
+  "meta": {
+    "instanceId": "c343419b4b1cdecddbb029e248deaac9aabf485149254fbb2ffa189213d42aba"
+  },
+  "id": "4DpjKNoqMEjEYFNm",
+  "tags": []
+}
