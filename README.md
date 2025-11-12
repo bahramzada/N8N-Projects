@@ -11,7 +11,7 @@
 - [Overview](#overview)
 - [Workflows](#workflows)
 - [About Each Workflow](#about-each-workflow)
-  - [Bina.az Real Estate Scraper & Database Sync](#binaaz-real-estate-scraper--database-sync)
+  - [Bina.az Real Estate Scraper & Database Sync](#🏠-Bina.az-Real-Estate-Scraper-&-Database-Sync)
   - [Glorri.az Job Scraper & Email Sender](#glorriaz-job-scraper--email-sender)
 - [Requirements](#requirements)
 - [Performance & Monitoring](#performance--monitoring)
