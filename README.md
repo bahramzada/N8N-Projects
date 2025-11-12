@@ -18,7 +18,6 @@
 - [Future Enhancements](#future-enhancements)
 - [Notes](#notes)
 
-
 ---
 
 ## 🧩 Overview
@@ -39,6 +38,8 @@ Each workflow is self-contained, documented, and can be directly imported into y
 ---
 
 ## 🏗️ About Each Workflow
+
+<a id="binaaz-real-estate-scraper--database-sync"></a>
 
 ### 🏠 Bina.az Real Estate Scraper & Database Sync
 
@@ -107,6 +108,8 @@ Merge All Fields
 ```
 
 ---
+
+<a id="glorriaz-job-scraper--email-sender"></a>
 
 ### 💼 Glorri.az Job Scraper & Email Sender
 
