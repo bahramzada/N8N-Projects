@@ -12,6 +12,7 @@
 - [Workflows](#workflows)
 - [About Each Workflow](#about-each-workflow)
   - [Bina.az Real Estate Scraper & Database Sync](#binaaz-real-estate-scraper--database-sync)
+  - [Glorri.az Job Scraper & Email Sender](#glorriaz-job-scraper--email-sender)
 - [Requirements](#requirements)
 - [Performance & Monitoring](#performance--monitoring)
 - [Future Enhancements](#future-enhancements)
@@ -31,7 +32,7 @@ Each workflow is self-contained, documented, and can be directly imported into y
 | Workflow | Description |
 |-----------|--------------|
 | [Bina.az Real Estate Scraper & Database Sync](https://github.com/bahramzada/N8N-Projects/blob/main/Bina.az%20Real%20Estate%20Scraper%20%26%20Database%20Sync.json) | Scrapes real estate listings from Bina.az and syncs them with Google Sheets |
-| [Glorri.az Job Scraper & Email Sender](#) | Scrapes job postings from glorri.az and sends them via email (coming soon) |
+| [Glorri.az Job Scraper & Email Sender](https://github.com/bahramzada/N8N-Projects/blob/main/Glorri.az%20Job%20Scraper%20%26%20Email%20Sender.json) | Scrapes job postings from Glorri.az and sends daily updates via Gmail |
 | _More workflows coming soon..._ | 🚀 |
 
 ---
@@ -102,3 +103,68 @@ Merge All Fields
 ┌──────────────────────────────┐
 │ Google Sheets (Upsert/Sync)  │
 └──────────────────────────────┘
+```
+
+---
+
+### 💼 Glorri.az Job Scraper & Email Sender
+
+#### Overview
+An automated n8n workflow that collects new job postings from **[Glorri.az](https://glorri.az)** several times a day and keeps a structured **Data Table (glorri)** synchronized.  
+At the same time, it automatically **emails the latest data-related job postings** to a specified address.
+
+---
+
+#### Workflow Purpose
+**Goal:** Automate the scraping and notification of new job openings — especially data-related ones.  
+**Use Cases:**
+- Receive email alerts for new data-related positions  
+- Maintain an up-to-date local or cloud dataset  
+- Track changes and trends in the job market  
+
+---
+
+#### Workflow Architecture
+
+**Phase 1: Trigger & Fetch**
+1. **Schedule Trigger** – runs **5 times daily (10:00, 13:00, 15:00, 17:00, 19:00)**  
+2. **HTTP Request (Glorri API)** – fetches the 20 most recent job listings  
+
+**Phase 2: Filtering & Extraction**
+3. **Code Node (Filter)** – keeps only jobs containing `"data"` or `"anali"` in the title  
+4. **Code Node (Extract)** – retrieves job `title` and `slug` fields  
+
+**Phase 3: Storage & Email Notification**
+5. **Data Table (Upsert Rows)** – inserts or updates job records in table `glorri.az`  
+6. **Gmail Node** – sends an automatic email with the list of new postings  
+   - Includes title, date, and direct link to each job  
+   - Automatically adjusts timestamp to **Baku Time (UTC+4)**  
+
+---
+
+#### Data Flow Summary
+```plaintext
+Schedule Trigger (10:00, 13:00, 15:00, 17:00, 19:00)
+    ↓
+Fetch Glorri.az Listings (API)
+    ↓
+Filter Data-Related Jobs
+    ↓
+Extract Job Titles & Slugs
+    ↓
+┌────────────────────────────┐
+│ Upsert into Data Table     │
+└────────────────────────────┘
+    ↓
+┌────────────────────────────┐
+│ Send Email Notification    │
+└────────────────────────────┘
+```
+
+---
+
+#### Key Features
+- **Automated execution** several times per day  
+- **Smart filtering** for relevant job titles  
+- **Database sync** with upsert logic (no duplicates)  
+- **Email summary** of latest positions with timestamps  
