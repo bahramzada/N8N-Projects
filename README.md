@@ -8,17 +8,14 @@
 ---
 
 ## 📖 Table of Contents
-- [Overview](#overview)
-- [Workflows](#workflows)
-- [About Each Workflow](#about-each-workflow)
+- [Overview](#overview-1)
+- [Workflows](#workflows-1)
+- [About Each Workflow](about-each)
   - [Bina.az Real Estate Scraper & Database Sync](#binaaz-real-estate-scraper--database-sync)
   - [Glorri.az Job Scraper & Email Sender](#glorriaz-job-scraper--email-sender)
-- [Requirements](#requirements)
-- [Performance & Monitoring](#performance--monitoring)
-- [Future Enhancements](#future-enhancements)
-- [Notes](#notes)
 
 ---
+<a id="overview-1"></a>
 
 ## 🧩 Overview
 
@@ -26,6 +23,7 @@ This repository contains reusable **n8n workflows (JSON files)** built for autom
 Each workflow is self-contained, documented, and can be directly imported into your n8n instance.
 
 ---
+<a id="workflows-1"></a>
 
 ## ⚙️ Workflows
 
@@ -36,6 +34,7 @@ Each workflow is self-contained, documented, and can be directly imported into y
 | _More workflows coming soon..._ | 🚀 |
 
 ---
+<a id="about-each"></a>
 
 ## 🏗️ About Each Workflow
 
