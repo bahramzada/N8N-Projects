@@ -386,7 +386,8 @@
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
-        }
+        },
+        "options": {}
       },
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1,
@@ -396,255 +397,6 @@
       ],
       "id": "39be07bb-d246-4ec4-af90-044409785077",
       "name": "Upsert to Database"
-    },
-    {
-      "parameters": {
-        "operation": "appendOrUpdate",
-        "documentId": {
-          "__rl": true,
-          "value": "1UmQEKdu1PAahgN0bujrEyTaF3d_YEq5tcF4fgNvR3yw",
-          "mode": "list",
-          "cachedResultName": "bina_az",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UmQEKdu1PAahgN0bujrEyTaF3d_YEq5tcF4fgNvR3yw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Sayfa1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UmQEKdu1PAahgN0bujrEyTaF3d_YEq5tcF4fgNvR3yw/edit#gid=0"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "id": "={{ $json.id }}",
-            "link": "={{ $json.link }}",
-            "area_m2": "={{ $json.area_m2 }}",
-            "area_units": "={{ $json.area_units }}",
-            "floor": "={{ $json.floor }}",
-            "floors": "={{ $json.floors }}",
-            "city_id": "={{ $json.city_id }}",
-            "city_name": "={{ $json.city_name }}",
-            "location_id": "={{ $json.location_id }}",
-            "location_name": "={{ $json.location_name }}",
-            "location_full": "={{ $json.location_full }}",
-            "price": "={{ $json.price }}",
-            "leased": "={{ $json.leased }}",
-            "currency": "={{ $json.currency }}",
-            "hasMortgage": "={{ $json.hasMortgage }}",
-            "isProAd": "={{ $json.isProAd }}",
-            "bumpedAt": "={{ $json.bumpedAt }}",
-            "description": "={{ $json.description }}",
-            "updated_text": "={{ $json.updated_raw }}",
-            "updated_at": "={{ $json.updated_iso_local }}"
-          },
-          "matchingColumns": [
-            "id"
-          ],
-          "schema": [
-            {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "link",
-              "displayName": "link",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "area_m2",
-              "displayName": "area_m2",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "area_units",
-              "displayName": "area_units",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "floor",
-              "displayName": "floor",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "floors",
-              "displayName": "floors",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "city_id",
-              "displayName": "city_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "city_name",
-              "displayName": "city_name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "location_id",
-              "displayName": "location_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "location_name",
-              "displayName": "location_name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "location_full",
-              "displayName": "location_full",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "price",
-              "displayName": "price",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "currency",
-              "displayName": "currency",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "leased",
-              "displayName": "leased",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "hasMortgage",
-              "displayName": "hasMortgage",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "isProAd",
-              "displayName": "isProAd",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "bumpedAt",
-              "displayName": "bumpedAt",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "description",
-              "displayName": "description",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "updated_text",
-              "displayName": "updated_text",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "updated_at",
-              "displayName": "updated_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        0,
-        176
-      ],
-      "id": "42d78dd4-c72b-437e-a2ec-1c56010eff85",
-      "name": "Update Google Sheets",
-      "retryOnFail": true,
-      "waitBetweenTries": 5000,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "X8ZtTgujrI7n4SyK",
-          "name": "Google Sheets account"
-        }
-      }
     },
     {
       "parameters": {
@@ -665,6 +417,265 @@
       ],
       "id": "87aa01e9-0752-4e22-8e92-c188afad957a",
       "name": "Run Every 12 Minutes"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "bina_az",
+          "mode": "list",
+          "cachedResultName": "bina_az"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "leased": "={{ $json.leased }}",
+            "isproad": "={{ $json.isProAd }}",
+            "hasmortgage": "={{ $json.hasMortgage }}",
+            "update_at": "={{\n  (() => {\n    const text = $json[\"updated_raw\"] || \"\";\n    // Tarix + saat hissəsini çıxar: 31.10.2025, 23:42\n    const m = text.match(/(\\d{2})\\.(\\d{2})\\.(\\d{4}),\\s*(\\d{2}):(\\d{2})/);\n    if (!m) return null;\n\n    const day = m[1];\n    const month = m[2];\n    const year = m[3];\n    const hour = m[4];\n    const minute = m[5];\n\n    // ISO format: 2025-10-31T23:42:00Z\n    return `${year}-${month}-${day}T${hour}:${minute}:00Z`;\n  })()\n}}\n",
+            "description": "={{ $json.description }}",
+            "price_currency": "={{ $json.currency }}",
+            "price": "={{ $json.price }}",
+            "location_full": "={{ $json.location_full }}",
+            "location_name": "={{ $json.location_name }}",
+            "location_id": "={{ $json.location_id }}",
+            "city_name": "={{ $json.city_name }}",
+            "city_id": "={{ $json.city_id }}",
+            "floors": "={{ $json.floors }}",
+            "floor": "={{ $json.floor }}",
+            "area_unit": "={{ $json.area_units }}",
+            "area": "={{ $json.area_m2 }}",
+            "link": "={{ $json.link }}",
+            "elan_id": "={{ $json.id }}"
+          },
+          "matchingColumns": [
+            "elan_id"
+          ],
+          "schema": [
+            {
+              "id": "elan_id",
+              "displayName": "elan_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "area",
+              "displayName": "area",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "area_unit",
+              "displayName": "area_unit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "floor",
+              "displayName": "floor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "floors",
+              "displayName": "floors",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "city_id",
+              "displayName": "city_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "city_name",
+              "displayName": "city_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "location_id",
+              "displayName": "location_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "location_name",
+              "displayName": "location_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "location_full",
+              "displayName": "location_full",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "price_currency",
+              "displayName": "price_currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "leased",
+              "displayName": "leased",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "isproad",
+              "displayName": "isproad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "hasmortgage",
+              "displayName": "hasmortgage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "update_at",
+              "displayName": "update_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        256
+      ],
+      "id": "c321eff0-2efe-4820-85f0-523aba210d80",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "myiYqEgQrzR8fa0m",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "861207023",
+        "text": "=⚠️PROBLEM ALERT⚠️\n\nWorkflow Adı : {{ $json.workflow.name }}\nXətalı node: {{ $json.execution.lastNodeExecuted }}\nLink : {{ $json.execution.url }}\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1568,
+        368
+      ],
+      "id": "efe90782-a312-4a61-9ae3-f62535faaceb",
+      "name": "Send a text message",
+      "webhookId": "4105dcb1-ef4d-4db5-b8b2-fddf0b3fde79",
+      "credentials": {
+        "telegramApi": {
+          "id": "nmfn4pDVP5giF1p2",
+          "name": "TestBot"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1808,
+        368
+      ],
+      "id": "0d1b729e-73ff-4282-878b-c7c3192f5498",
+      "name": "Error Trigger"
     }
   ],
   "pinData": {},
@@ -749,12 +760,12 @@
       "main": [
         [
           {
-            "node": "Update Google Sheets",
+            "node": "Upsert to Database",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Upsert to Database",
+            "node": "Insert or update rows in a table",
             "type": "main",
             "index": 0
           }
@@ -771,14 +782,26 @@
           }
         ]
       ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "e8dab1c6-64d7-48b2-a31f-018d4af4a5e9",
+  "versionId": "5958ffbb-cb35-40aa-9aa0-8bbf7faa539a",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "c343419b4b1cdecddbb029e248deaac9aabf485149254fbb2ffa189213d42aba"
   },
   "id": "h4LDZE7CxcX73USm",
